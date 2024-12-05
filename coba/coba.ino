@@ -327,17 +327,6 @@ void loop()
         break; // Keluar dari loop opsi
       }
     }
-
-    Serial.println("Tekan 'A' untuk mengulangi proses dari awal.");
-    while (true)
-    {
-      char key = keypad.getKey();
-      if (key == 'A')
-      {
-        Serial.println("Mengulangi proses dari awal...");
-        break; // Keluar dari loop dan kembali ke awal
-      }
-    }
   }
   delay(1000);
 }
