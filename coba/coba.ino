@@ -206,11 +206,9 @@ void lihatData() {
                     Serial.println(" cm");
 
                     lcd.clear();
-                    lcd.print("Berat: ");
-                    lcd.print(berat);
+                    lcd.print("Berat:  " + String(berat) + " kg");
                     lcd.setCursor(0, 1);
-                    lcd.print("Tinggi: ");
-                    lcd.print(tinggi);
+                    lcd.print("Tinggi: " + String(tinggi) + " cm");
                     delay(3000);
                 }
             } else {
