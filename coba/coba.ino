@@ -12,9 +12,9 @@
 #define WIFI_PASSWORD "percobaan"
 
 // URL server
-const char* registerUrl = "http://192.168.1.201/coba/register_rfid.php";
-const char* sendDataUrl = "http://192.168.1.201/coba/send_data.php";
-const char* lihatDataUrl = "http://192.168.1.201/coba/lihat.php";
+const char *registerUrl = "http://192.168.1.201/coba/register_rfid.php";
+const char *sendDataUrl = "http://192.168.1.201/coba/send_data.php";
+const char *lihatDataUrl = "http://192.168.1.201/coba/lihat.php";
 
 // Konfigurasi RFID
 #define RST_PIN 2
@@ -25,11 +25,10 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 const byte ROWS = 4;
 const byte COLS = 4;
 char keys[ROWS][COLS] = {
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
+    {'1', '2', '3', 'A'},
+    {'4', '5', '6', 'B'},
+    {'7', '8', '9', 'C'},
+    {'*', '0', '#', 'D'}};
 byte rowPins[ROWS] = {26, 25, 33, 32};
 byte colPins[COLS] = {13, 12, 14, 27};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
@@ -38,15 +37,20 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Alamat I2C bisa 0x27 atau 0x3F
 String uid = "";
 
-// Cek koneksi Wi-Fi
-void checkWiFiConnection() {
-  if (WiFi.status() != WL_CONNECTED) {
+/**
+ * Cek koneksi Wi-Fi
+ */
+void checkWiFiConnection()
+{
+  if (WiFi.status() != WL_CONNECTED)
+  {
     Serial.println("Reconnecting to Wi-Fi...");
     lcd.clear();
     lcd.print("Reconnecting...");
     WiFi.disconnect();
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED)
+    {
       delay(1000);
       Serial.print(".");
       lcd.print(".");
@@ -57,14 +61,21 @@ void checkWiFiConnection() {
   }
 }
 
-// Scan RFID dan mendapatkan UID
-bool scanRFID() {
-  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
+/**
+ * Scan RFID dan mendapatkan UID
+ * @return true jika kartu baru terdeteksi, false jika tidak
+ */
+bool scanRFID()
+{
+  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
+  {
     return false;
   }
   uid = "";
-  for (byte i = 0; i < rfid.uid.size; i++) {
-    if (rfid.uid.uidByte[i] < 0x10) uid += "0";
+  for (byte i = 0; i < rfid.uid.size; i++)
+  {
+    if (rfid.uid.uidByte[i] < 0x10)
+      uid += "0";
     uid += String(rfid.uid.uidByte[i], HEX);
   }
   uid.toUpperCase();
@@ -93,18 +104,25 @@ bool checkCardStatus(const String& uid) {
   return false;
 }
 
-
-// Input data dari keypad
-String readFromKeypad(const String& prompt) {
+/**
+ * Input data dari keypad
+ * @param prompt pesan yang ditampilkan untuk meminta input
+ * @return input dari keypad
+ */
+String readFromKeypad(const String &prompt)
+{
   Serial.println(prompt);
   String input = "";
   char key;
-  while (true) {
+  while (true)
+  {
     key = keypad.getKey();
-    if (key) {
-      if (key == '#') break;  // Selesai
+    if (key)
+    {
+      if (key == '#')
+        break; // Selesai
       if (key == '*')
-        input = "";  // Hapus input
+        input = ""; // Hapus input
       else
         input += key;
       Serial.print("Input: ");
@@ -114,8 +132,13 @@ String readFromKeypad(const String& prompt) {
   return input;
 }
 
-// Kirim data berat dan tinggi
-void sendData(const String& height, const String& weight) {
+/**
+ * Kirim data berat dan tinggi ke server
+ * @param height tinggi badan
+ * @param weight berat badan
+ */
+void sendData(const String &height, const String &weight)
+{
   WiFiClient client;
   HTTPClient http;
   http.begin(client, sendDataUrl);
@@ -125,12 +148,15 @@ void sendData(const String& height, const String& weight) {
   String response = http.getString();
   http.end();
 
-  if (httpCode == HTTP_CODE_OK) {
+  if (httpCode == HTTP_CODE_OK)
+  {
     Serial.println("Server Response: " + response);
     lcd.clear();
     lcd.print("Data Sent!");
     delay(2000);
-  } else {
+  }
+  else
+  {
     Serial.println("Error sending data: " + String(httpCode));
     lcd.clear();
     lcd.print("Send Error!");
@@ -225,9 +251,11 @@ void setup() {
   lcd.print("Ready!");
 }
 
-void loop() {
+void loop()
+{
   checkWiFiConnection();
-  if (scanRFID()) {
+  if (scanRFID())
+  {
     Serial.println("Kartu berhasil discan.");
     Serial.println("Pilih opsi:");
     Serial.println("B: Tambah data");
@@ -237,7 +265,8 @@ void loop() {
     lcd.clear();
     lcd.print("Pilih: B, C, D");
 
-    while (true) {
+    while (true)
+    {
       char key = keypad.getKey();
       if (key == 'B') {
         if (checkCardStatus(uid)) {
