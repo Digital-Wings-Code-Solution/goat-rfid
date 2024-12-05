@@ -304,8 +304,10 @@ void loop() {
                 lihatData(); // Memanggil fungsi lihat data
                 break;       // Keluar dari loop opsi
             } else if (key == 'D') {
+                lcd.clear();
+                lcd.print("scan kartu");
                 Serial.println("Proses dibatalkan. Siap untuk scan kartu berikutnya.");
-                return; // Kembali ke awal loop utama
+                break; // Kembali ke awal loop utama
             }
         }
     }
