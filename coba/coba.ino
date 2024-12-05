@@ -312,36 +312,19 @@ void loop()
       if (key == 'B')
       {
         lcd.clear();
-        if (checkCardStatus(uid))
-        {
-          Serial.println("Kartu terdaftar. Silakan masukkan berat dan tinggi.");
+        Serial.println("Silakan masukkan berat dan tinggi.");
 
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Insert height in cm. #: Save | *: Clear");
-          for (int i = 0; i < 16; i++)
-          {
-            lcd.scrollDisplayLeft();
-            delay(300);
-          }
-          String height = readFromKeypad("Input height (end with #):");
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Height (cm):");
+        String height = readFromKeypad("Input height (end with #):");
 
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Insert weight in kg. #: Save | *: Clear");
-          for (int i = 0; i < 16; i++)
-          {
-            lcd.scrollDisplayLeft();
-            delay(300);
-          }
-          String weight = readFromKeypad("Input weight (end with #):");
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Weight (kg):");
+        String weight = readFromKeypad("Input weight (end with #):");
 
-          sendData(height, weight);
-        }
-        else
-        {
-          Serial.println("Kartu belum terdaftar. Hubungi admin untuk pendaftaran kartu.");
-        }
+        sendData(height, weight);
         break; // Keluar dari loop opsi
       }
       else if (key == 'C')
@@ -352,8 +335,9 @@ void loop()
       else if (key == 'D')
       {
         lcd.clear();
-        lcd.print("scan kartu");
+        lcd.print("Scan next card");
         Serial.println("Proses dibatalkan. Siap untuk scan kartu berikutnya.");
+        delay(2000);
         break; // Kembali ke awal loop utama
       }
     }
