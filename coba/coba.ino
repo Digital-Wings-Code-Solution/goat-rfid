@@ -37,7 +37,9 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Alamat I2C bisa 0x27 atau 0x3F
 String uid = "";
 
-// Cek koneksi Wi-Fi
+/**
+ * Cek koneksi Wi-Fi
+ */
 void checkWiFiConnection()
 {
   if (WiFi.status() != WL_CONNECTED)
@@ -59,7 +61,10 @@ void checkWiFiConnection()
   }
 }
 
-// Scan RFID dan mendapatkan UID
+/**
+ * Scan RFID dan mendapatkan UID
+ * @return true jika kartu baru terdeteksi, false jika tidak
+ */
 bool scanRFID()
 {
   if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
@@ -82,7 +87,11 @@ bool scanRFID()
   return true;
 }
 
-// Input data dari keypad
+/**
+ * Input data dari keypad
+ * @param prompt pesan yang ditampilkan untuk meminta input
+ * @return input dari keypad
+ */
 String readFromKeypad(const String &prompt)
 {
   Serial.println(prompt);
@@ -106,7 +115,11 @@ String readFromKeypad(const String &prompt)
   return input;
 }
 
-// Kirim data berat dan tinggi
+/**
+ * Kirim data berat dan tinggi ke server
+ * @param height tinggi badan
+ * @param weight berat badan
+ */
 void sendData(const String &height, const String &weight)
 {
   WiFiClient client;
@@ -134,17 +147,17 @@ void sendData(const String &height, const String &weight)
   }
 }
 
-// Fungsi untuk melihat data
+/**
+ * Fungsi untuk melihat data dari server
+ */
 void lihatData()
 {
   if (WiFi.status() == WL_CONNECTED)
   {
     WiFiClient client;
     HTTPClient http;
-
     String lihatUrl = String(lihatDataUrl) + "?uid=" + uid;
     http.begin(client, lihatUrl);
-
     int httpResponseCode = http.GET();
 
     if (httpResponseCode > 0)
