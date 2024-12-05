@@ -28,8 +28,7 @@ char keys[ROWS][COLS] = {
     {'1', '2', '3', 'A'},
     {'4', '5', '6', 'B'},
     {'7', '8', '9', 'C'},
-    {'*', '0', '#', 'D'}
-};
+    {'*', '0', '#', 'D'}};
 byte rowPins[ROWS] = {26, 25, 33, 32};
 byte colPins[COLS] = {13, 12, 14, 27};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
@@ -41,14 +40,17 @@ String uid = "";
 /**
  * Cek koneksi Wi-Fi
  */
-void checkWiFiConnection() {
-    if (WiFi.status() != WL_CONNECTED) {
+void checkWiFiConnection()
+{
+    if (WiFi.status() != WL_CONNECTED)
+    {
         Serial.println("Reconnecting to Wi-Fi...");
         lcd.clear();
         lcd.print("Reconnecting...");
         WiFi.disconnect();
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-        while (WiFi.status() != WL_CONNECTED) {
+        while (WiFi.status() != WL_CONNECTED)
+        {
             delay(1000);
             Serial.print(".");
             lcd.print(".");
@@ -63,13 +65,17 @@ void checkWiFiConnection() {
  * Scan RFID dan mendapatkan UID
  * @return true jika kartu baru terdeteksi, false jika tidak
  */
-bool scanRFID() {
-    if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
+bool scanRFID()
+{
+    if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
+    {
         return false;
     }
     uid = "";
-    for (byte i = 0; i < rfid.uid.size; i++) {
-        if (rfid.uid.uidByte[i] < 0x10) uid += "0";
+    for (byte i = 0; i < rfid.uid.size; i++)
+    {
+        if (rfid.uid.uidByte[i] < 0x10)
+            uid += "0";
         uid += String(rfid.uid.uidByte[i], HEX);
     }
     uid.toUpperCase();
@@ -86,7 +92,8 @@ bool scanRFID() {
  * @param uid UID dari kartu RFID
  * @return true jika kartu terdaftar, false jika tidak
  */
-bool checkCardStatus(const String &uid) {
+bool checkCardStatus(const String &uid)
+{
     WiFiClient client;
     HTTPClient http;
     http.begin(client, registerUrl);
@@ -96,7 +103,8 @@ bool checkCardStatus(const String &uid) {
     String response = http.getString();
     http.end();
 
-    if (httpCode == HTTP_CODE_OK) {
+    if (httpCode == HTTP_CODE_OK)
+    {
         return response.indexOf("exists") >= 0; // Respon berisi "exists" jika terdaftar
     }
     return false;
@@ -107,7 +115,8 @@ bool checkCardStatus(const String &uid) {
  * @param prompt pesan yang ditampilkan untuk meminta input
  * @return input dari keypad
  */
-String readFromKeypad(const String &prompt) {
+String readFromKeypad(const String &prompt)
+{
     Serial.println(prompt);
     String input = "";
     char key;
@@ -115,12 +124,17 @@ String readFromKeypad(const String &prompt) {
     lcd.setCursor(0, 0);
     lcd.print(prompt);
     lcd.setCursor(0, 1);
-    while (true) {
+    while (true)
+    {
         key = keypad.getKey();
-        if (key) {
-            if (key == '#') break; // Selesai
-            if (key == '*') input = ""; // Hapus input
-            else input += key;
+        if (key)
+        {
+            if (key == '#')
+                break; // Selesai
+            if (key == '*')
+                input = ""; // Hapus input
+            else
+                input += key;
             Serial.print("Input: ");
             Serial.println(input);
             lcd.setCursor(0, 1);
@@ -135,7 +149,8 @@ String readFromKeypad(const String &prompt) {
  * @param height tinggi badan
  * @param weight berat badan
  */
-void sendData(const String &height, const String &weight) {
+void sendData(const String &height, const String &weight)
+{
     WiFiClient client;
     HTTPClient http;
     http.begin(client, sendDataUrl);
@@ -145,12 +160,15 @@ void sendData(const String &height, const String &weight) {
     String response = http.getString();
     http.end();
 
-    if (httpCode == HTTP_CODE_OK) {
+    if (httpCode == HTTP_CODE_OK)
+    {
         Serial.println("Server Response: " + response);
         lcd.clear();
         lcd.print("Data Sent!");
         delay(2000);
-    } else {
+    }
+    else
+    {
         Serial.println("Error sending data: " + String(httpCode));
         lcd.clear();
         lcd.print("Send Error!");
@@ -161,15 +179,18 @@ void sendData(const String &height, const String &weight) {
 /**
  * Fungsi untuk melihat data dari server
  */
-void lihatData() {
-    if (WiFi.status() == WL_CONNECTED) {
+void lihatData()
+{
+    if (WiFi.status() == WL_CONNECTED)
+    {
         WiFiClient client;
         HTTPClient http;
         String lihatUrl = String(lihatDataUrl) + "?uid=" + uid;
         http.begin(client, lihatUrl);
         int httpResponseCode = http.GET();
 
-        if (httpResponseCode > 0) {
+        if (httpResponseCode > 0)
+        {
             String payload = http.getString();
             Serial.println("Data dari server:");
             Serial.println(payload);
@@ -178,13 +199,17 @@ void lihatData() {
             DynamicJsonDocument doc(1024); // Increased size from 256 to 1024
             DeserializationError error = deserializeJson(doc, payload);
 
-            if (!error) {
-                if (doc.containsKey("error")) {
+            if (!error)
+            {
+                if (doc.containsKey("error"))
+                {
                     // Jika ada error dari server
                     Serial.println("Error: " + String(doc["error"].as<const char *>()));
                     lcd.clear();
                     lcd.print("Data: Not Found");
-                } else {
+                }
+                else
+                {
                     const char *created_at = doc["created_at"];
                     float berat = doc["weight"];
                     float tinggi = doc["height"];
@@ -205,13 +230,17 @@ void lihatData() {
                     lcd.print("Tinggi: " + String(tinggi) + " cm");
                     delay(3000);
                 }
-            } else {
+            }
+            else
+            {
                 Serial.println("Gagal mem-parsing JSON.");
                 lcd.clear();
                 lcd.print("JSON Error!");
                 delay(2000);
             }
-        } else {
+        }
+        else
+        {
             Serial.print("Error mengambil data, kode: ");
             Serial.println(httpResponseCode);
             lcd.clear();
@@ -220,7 +249,9 @@ void lihatData() {
         }
 
         http.end();
-    } else {
+    }
+    else
+    {
         Serial.println("WiFi tidak terhubung.");
         lcd.clear();
         lcd.print("No WiFi!");
@@ -231,7 +262,8 @@ void lihatData() {
     lcd.clear();
     lcd.print("Press any key");
 
-    while (keypad.getKey() == NO_KEY) {
+    while (keypad.getKey() == NO_KEY)
+    {
         delay(100);
     }
     lcd.clear();
@@ -240,7 +272,8 @@ void lihatData() {
 /**
  * Fungsi setup untuk inisialisasi
  */
-void setup() {
+void setup()
+{
     Serial.begin(115200);
     SPI.begin();
     rfid.PCD_Init();
@@ -257,9 +290,11 @@ void setup() {
 /**
  * Fungsi loop utama
  */
-void loop() {
+void loop()
+{
     checkWiFiConnection();
-    if (scanRFID()) {
+    if (scanRFID())
+    {
         Serial.println("Kartu berhasil discan.");
         Serial.println("Pilih opsi:");
         Serial.println("B: Tambah data");
@@ -271,16 +306,21 @@ void loop() {
         lcd.setCursor(0, 1);
         lcd.print("D: Cancel");
 
-        while (true) {
+        while (true)
+        {
             char key = keypad.getKey();
-            if (key == 'B') {
-                if (checkCardStatus(uid)) {
+            if (key == 'B')
+            {
+                lcd.clear();
+                if (checkCardStatus(uid))
+                {
                     Serial.println("Kartu terdaftar. Silakan masukkan berat dan tinggi.");
 
                     lcd.clear();
                     lcd.setCursor(0, 0);
                     lcd.print("Insert height in cm. #: Save | *: Clear");
-                    for (int i = 0; i < 16; i++) {
+                    for (int i = 0; i < 16; i++)
+                    {
                         lcd.scrollDisplayLeft();
                         delay(300);
                     }
@@ -289,27 +329,62 @@ void loop() {
                     lcd.clear();
                     lcd.setCursor(0, 0);
                     lcd.print("Insert weight in kg. #: Save | *: Clear");
-                    for (int i = 0; i < 16; i++) {
+                    for (int i = 0; i < 16; i++)
+                    {
+                        lcd.scrollDisplayLeft();
+                        delay(300);
+                    }
+                    String weight = readFromKeypad("Input weight (end with #):");
+
+                    lcd.clear();
+                    lcd.setCursor(0, 0);
+                    lcd.print("Insert weight in kg. #: Save | *: Clear");
+                    for (int i = 0; i < 16; i++)
+                    {
                         lcd.scrollDisplayLeft();
                         delay(300);
                     }
                     String weight = readFromKeypad("Input weight (end with #):");
 
                     sendData(height, weight);
-                } else {
+                }
+                else
+                {
                     Serial.println("Kartu belum terdaftar. Hubungi admin untuk pendaftaran kartu.");
                 }
                 break; // Keluar dari loop opsi
-            } else if (key == 'C') {
+            }
+            else if (key == 'C')
+            {
                 lihatData(); // Memanggil fungsi lihat data
                 break;       // Keluar dari loop opsi
-            } else if (key == 'D') {
+            }
+            else if (key == 'D')
+            {
                 lcd.clear();
                 lcd.print("scan kartu");
                 Serial.println("Proses dibatalkan. Siap untuk scan kartu berikutnya.");
                 break; // Kembali ke awal loop utama
             }
         }
+        else
+        {
+            Serial.println("Kartu belum terdaftar. Hubungi admin untuk pendaftaran kartu.");
+        }
+        break; // Keluar dari loop opsi
     }
-    delay(1000);
+    else if (key == 'C')
+    {
+        lcd.clear();
+        lihatData(); // Memanggil fungsi lihat data
+        break;       // Keluar dari loop opsi
+    }
+    else if (key == 'D')
+    {
+        lcd.clear();
+        Serial.println("Proses dibatalkan. Siap untuk scan kartu berikutnya.");
+        return; // Kembali ke awal loop utama
+    }
+}
+delay(1000);
 }
