@@ -350,7 +350,7 @@ void loop()
       else if (key == 'D')
       {
         Serial.println("Proses dibatalkan. Siap untuk scan kartu berikutnya.");
-        break; // Keluar dari loop opsi
+        return; // Kembali ke awal loop utama
       }
     }
   }
