@@ -296,7 +296,9 @@ void loop()
     Serial.println("D: Cancel");
 
     lcd.clear();
-    lcd.print("Pilih: B, C, D");
+    lcd.print("B: Add | C: View");
+    lcd.setCursor(0, 1);
+    lcd.print("D: Cancel");
 
     while (true)
     {
@@ -305,9 +307,31 @@ void loop()
       {
         if (checkCardStatus(uid))
         {
+
           Serial.println("Kartu terdaftar. Silakan masukkan berat dan tinggi.");
+
+          lcd.clear();
+          lcd.print("Insert height in cm. Press # to save, * to clear.");
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("Insert height in cm. Press # to save, * to clear.");
+          for (int i = 0; i < 16; i++) {
+            lcd.scrollDisplayLeft();
+            delay(300);
+          }
           String height = readFromKeypad("Input height (end with #):");
+
+          lcd.clear();
+          lcd.print("Insert weight in kg. Press # to save, * to clear.");
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("Insert weight in kg. Press # to save, * to clear.");
+          for (int i = 0; i < 16; i++) {
+            lcd.scrollDisplayLeft();
+            delay(300);
+          }
           String weight = readFromKeypad("Input weight (end with #):");
+          
           sendData(height, weight);
         }
         else
