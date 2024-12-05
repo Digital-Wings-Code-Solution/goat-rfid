@@ -120,6 +120,10 @@ String readFromKeypad(const String &prompt)
   Serial.println(prompt);
   String input = "";
   char key;
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(prompt);
+  lcd.setCursor(0, 1);
   while (true)
   {
     key = keypad.getKey();
@@ -133,6 +137,8 @@ String readFromKeypad(const String &prompt)
         input += key;
       Serial.print("Input: ");
       Serial.println(input);
+      lcd.setCursor(0, 1);
+      lcd.print(input);
     }
   }
   return input;
@@ -311,8 +317,6 @@ void loop()
           Serial.println("Kartu terdaftar. Silakan masukkan berat dan tinggi.");
 
           lcd.clear();
-          lcd.print("Insert height in cm. Press # to save, * to clear.");
-          lcd.clear();
           lcd.setCursor(0, 0);
           lcd.print("Insert height in cm. Press # to save, * to clear.");
           for (int i = 0; i < 16; i++) {
@@ -322,8 +326,6 @@ void loop()
           String height = readFromKeypad("Input height (end with #):");
 
           lcd.clear();
-          lcd.print("Insert weight in kg. Press # to save, * to clear.");
-          lcd.clear();
           lcd.setCursor(0, 0);
           lcd.print("Insert weight in kg. Press # to save, * to clear.");
           for (int i = 0; i < 16; i++) {
@@ -331,7 +333,7 @@ void loop()
             delay(300);
           }
           String weight = readFromKeypad("Input weight (end with #):");
-          
+
           sendData(height, weight);
         }
         else
