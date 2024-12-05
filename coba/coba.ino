@@ -12,7 +12,6 @@
 #define WIFI_PASSWORD "percobaan"
 
 // URL server
-const char *registerUrl = "http://192.168.1.201/coba/register_rfid.php";
 const char *sendDataUrl = "http://192.168.1.201/coba/send_data.php";
 const char *lihatDataUrl = "http://192.168.1.201/coba/lihat.php";
 
@@ -297,19 +296,19 @@ void loop()
   {
     Serial.println("Kartu berhasil discan.");
     Serial.println("Pilih opsi:");
-    Serial.println("B: Tambah data");
-    Serial.println("C: Lihat data");
-    Serial.println("D: Cancel");
+    Serial.println("A: Tambah data");
+    Serial.println("B: Lihat data");
+    Serial.println("C: Cancel");
 
     lcd.clear();
-    lcd.print("B: Add | C: View");
+    lcd.print("A: Add | B: View");
     lcd.setCursor(0, 1);
-    lcd.print("D: Cancel");
+    lcd.print("C: Cancel");
 
     while (true)
     {
       char key = keypad.getKey();
-      if (key == 'B')
+      if (key == 'A')
       {
         lcd.clear();
         Serial.println("Silakan masukkan berat dan tinggi.");
@@ -327,12 +326,12 @@ void loop()
         sendData(height, weight);
         break; // Keluar dari loop opsi
       }
-      else if (key == 'C')
+      else if (key == 'B')
       {
         lihatData(); // Memanggil fungsi lihat data
         break;       // Keluar dari loop opsi
       }
-      else if (key == 'D')
+      else if (key == 'C')
       {
         lcd.clear();
         lcd.print("Scan next card");
