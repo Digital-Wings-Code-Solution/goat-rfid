@@ -255,13 +255,12 @@ void lihatData()
   // Tunggu hingga ada tombol yang ditekan untuk kembali ke menu utama
   lcd.clear();
   lcd.print("Press any key");
-  
+
   while (keypad.getKey() == NO_KEY)
   {
     delay(100);
   }
   lcd.clear();
-  break;
 }
 
 /**
