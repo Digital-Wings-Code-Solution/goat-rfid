@@ -87,8 +87,13 @@ bool scanRFID()
   return true;
 }
 
-// Cek apakah kartu sudah terdaftar
-bool checkCardStatus(const String& uid) {
+/**
+ * Cek apakah kartu sudah terdaftar
+ * @param uid UID dari kartu RFID
+ * @return true jika kartu terdaftar, false jika tidak
+ */
+bool checkCardStatus(const String &uid)
+{
   WiFiClient client;
   HTTPClient http;
   http.begin(client, registerUrl);
@@ -98,8 +103,9 @@ bool checkCardStatus(const String& uid) {
   String response = http.getString();
   http.end();
 
-  if (httpCode == HTTP_CODE_OK) {
-    return response.indexOf("exists") >= 0;  // Respon berisi "exists" jika terdaftar
+  if (httpCode == HTTP_CODE_OK)
+  {
+    return response.indexOf("exists") >= 0; // Respon berisi "exists" jika terdaftar
   }
   return false;
 }
@@ -164,78 +170,102 @@ void sendData(const String &height, const String &weight)
   }
 }
 
-// Fungsi untuk melihat data
-void lihatData() {
-    if (WiFi.status() == WL_CONNECTED) {
-        WiFiClient client;
-        HTTPClient http;
+/**
+ * Fungsi untuk melihat data dari server
+ */
+void lihatData()
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    WiFiClient client;
+    HTTPClient http;
+    String lihatUrl = String(lihatDataUrl) + "?uid=" + uid;
+    http.begin(client, lihatUrl);
+    int httpResponseCode = http.GET();
 
-        String lihatUrl = String(lihatDataUrl) + "?uid=" + uid;
-        http.begin(client, lihatUrl);
+    if (httpResponseCode > 0)
+    {
+      String payload = http.getString();
+      Serial.println("Data dari server:");
+      Serial.println(payload);
 
-        int httpResponseCode = http.GET();
+      // Parsing JSON
+      DynamicJsonDocument doc(256);
+      DeserializationError error = deserializeJson(doc, payload);
 
-        if (httpResponseCode > 0) {
-            String payload = http.getString();
-            Serial.println("Data dari server:");
-            Serial.println(payload);
-
-            // Parsing JSON
-            DynamicJsonDocument doc(256);
-            DeserializationError error = deserializeJson(doc, payload);
-
-            if (!error) {
-                if (doc.containsKey("error")) {
-                    // Jika ada error dari server
-                    Serial.println("Error: " + String(doc["error"].as<const char*>()));
-                    lcd.clear();
-                    lcd.print("Data: Not Found");
-                } else {
-                    const char* created_at = doc["created_at"];
-                    float berat = doc["weight"];
-                    float tinggi = doc["height"];
-
-                    Serial.println("Detail Data:");
-                    Serial.print("Tanggal: ");
-                    Serial.println(created_at);
-                    Serial.print("Berat: ");
-                    Serial.print(berat);
-                    Serial.println(" kg");
-                    Serial.print("Tinggi: ");
-                    Serial.print(tinggi);
-                    Serial.println(" cm");
-
-                    lcd.clear();
-                    lcd.print("Berat:  " + String(berat) + " kg");
-                    lcd.setCursor(0, 1);
-                    lcd.print("Tinggi: " + String(tinggi) + " cm");
-                    delay(3000);
-                }
-            } else {
-                Serial.println("Gagal mem-parsing JSON.");
-                lcd.clear();
-                lcd.print("JSON Error!");
-                delay(2000);
-            }
-        } else {
-            Serial.print("Error mengambil data, kode: ");
-            Serial.println(httpResponseCode);
-            lcd.clear();
-            lcd.print("Error GET!");
-            delay(2000);
+      if (!error)
+      {
+        if (doc.containsKey("error"))
+        {
+          // Jika ada error dari server
+          Serial.println("Error: " + String(doc["error"].as<const char *>()));
+          lcd.clear();
+          lcd.print("Data: Not Found");
         }
+        else
+        {
+          const char *created_at = doc["created_at"];
+          float berat = doc["weight"];
+          float tinggi = doc["height"];
 
-        http.end();
-    } else {
-        Serial.println("WiFi tidak terhubung.");
+          Serial.println("Detail Data:");
+          Serial.print("Tanggal: ");
+          Serial.println(created_at);
+          Serial.print("Berat: ");
+          Serial.print(berat);
+          Serial.println(" kg");
+          Serial.print("Tinggi: ");
+          Serial.print(tinggi);
+          Serial.println(" cm");
+
+          lcd.clear();
+          lcd.print("Berat:  " + String(berat) + " kg");
+          lcd.setCursor(0, 1);
+          lcd.print("Tinggi: " + String(tinggi) + " cm");
+          delay(3000);
+        }
+      }
+      else
+      {
+        Serial.println("Gagal mem-parsing JSON.");
         lcd.clear();
-        lcd.print("No WiFi!");
+        lcd.print("JSON Error!");
         delay(2000);
+      }
     }
+    else
+    {
+      Serial.print("Error mengambil data, kode: ");
+      Serial.println(httpResponseCode);
+      lcd.clear();
+      lcd.print("Error GET!");
+      delay(2000);
+    }
+
+    http.end();
+  }
+  else
+  {
+    Serial.println("WiFi tidak terhubung.");
+    lcd.clear();
+    lcd.print("No WiFi!");
+    delay(2000);
+  }
+
+  // Tunggu hingga ada tombol yang ditekan untuk kembali ke menu utama
+  lcd.clear();
+  lcd.print("Press any key");
+  while (!keypad.getKey())
+  {
+    delay(100);
+  }
 }
 
-
-void setup() {
+/**
+ * Fungsi setup untuk inisialisasi
+ */
+void setup()
+{
   Serial.begin(115200);
   SPI.begin();
   rfid.PCD_Init();
@@ -249,6 +279,9 @@ void setup() {
   lcd.print("Ready!");
 }
 
+/**
+ * Fungsi loop utama
+ */
 void loop()
 {
   checkWiFiConnection();
@@ -266,31 +299,41 @@ void loop()
     while (true)
     {
       char key = keypad.getKey();
-      if (key == 'B') {
-        if (checkCardStatus(uid)) {
+      if (key == 'B')
+      {
+        if (checkCardStatus(uid))
+        {
           Serial.println("Kartu terdaftar. Silakan masukkan berat dan tinggi.");
           String height = readFromKeypad("Input height (end with #):");
           String weight = readFromKeypad("Input weight (end with #):");
           sendData(height, weight);
-        } else {
+        }
+        else
+        {
           Serial.println("Kartu belum terdaftar. Hubungi admin untuk pendaftaran kartu.");
         }
-        break;  // Keluar dari loop opsi
-      } else if (key == 'C') {
-        lihatData();  // Memanggil fungsi lihat data
-        break;        // Keluar dari loop opsi
-      } else if (key == 'D') {
+        break; // Keluar dari loop opsi
+      }
+      else if (key == 'C')
+      {
+        lihatData(); // Memanggil fungsi lihat data
+        break;       // Keluar dari loop opsi
+      }
+      else if (key == 'D')
+      {
         Serial.println("Proses dibatalkan. Siap untuk scan kartu berikutnya.");
-        break;  // Keluar dari loop opsi
+        break; // Keluar dari loop opsi
       }
     }
 
     Serial.println("Tekan 'A' untuk mengulangi proses dari awal.");
-    while (true) {
+    while (true)
+    {
       char key = keypad.getKey();
-      if (key == 'A') {
+      if (key == 'A')
+      {
         Serial.println("Mengulangi proses dari awal...");
-        break;  // Keluar dari loop dan kembali ke awal
+        break; // Keluar dari loop dan kembali ke awal
       }
     }
   }
