@@ -190,7 +190,7 @@ void lihatData()
       Serial.println(payload);
 
       // Parsing JSON
-      DynamicJsonDocument doc(256);
+      DynamicJsonDocument doc(1024); // Increased size from 256 to 1024
       DeserializationError error = deserializeJson(doc, payload);
 
       if (!error)
