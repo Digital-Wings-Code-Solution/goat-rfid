@@ -220,6 +220,16 @@ void lihatData()
     lcd.print("No WiFi!");
     delay(2000);
   }
+
+  // Wait for any key press to return to main menu
+  lcd.clear();
+  lcd.print("Tekan tombol apa");
+  lcd.setCursor(0, 1);
+  lcd.print("saja untuk balik");
+  while (!keypad.getKey())
+  {
+    delay(100);
+  }
 }
 
 void setup()
