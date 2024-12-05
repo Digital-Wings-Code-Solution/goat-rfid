@@ -279,7 +279,7 @@ void loop() {
 
                     lcd.clear();
                     lcd.setCursor(0, 0);
-                    lcd.print("Insert height in cm. Press # to save, * to clear.");
+                    lcd.print("Insert height in cm. #: Save | *: Clear");
                     for (int i = 0; i < 16; i++) {
                         lcd.scrollDisplayLeft();
                         delay(300);
@@ -288,7 +288,7 @@ void loop() {
 
                     lcd.clear();
                     lcd.setCursor(0, 0);
-                    lcd.print("Insert weight in kg. Press # to save, * to clear.");
+                    lcd.print("Insert weight in kg. #: Save | *: Clear");
                     for (int i = 0; i < 16; i++) {
                         lcd.scrollDisplayLeft();
                         delay(300);
