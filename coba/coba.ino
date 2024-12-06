@@ -257,7 +257,7 @@ void hapusData() {
         WiFiClient client;
         HTTPClient http;
 
-        http.begin(client, "http://192.168.1.201/coba/hapus_data.php"); // URL endpoint hapus data
+        http.begin(client, "http://192.168.1.201/coba/hapus.php"); // URL endpoint hapus data
         http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
         // Kirim data UID untuk dihapus
