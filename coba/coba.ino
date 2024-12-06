@@ -12,7 +12,6 @@
 #define WIFI_PASSWORD "percobaan"
 
 // URL server
-const char *registerUrl = "http://192.168.1.201/coba/register_rfid.php";
 const char *sendDataUrl = "http://192.168.1.201/coba/send_data.php";
 const char *lihatDataUrl = "http://192.168.1.201/coba/lihat.php";
 
@@ -38,8 +37,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // Alamat I2C bisa 0x27 atau 0x3F
 String uid = "";
 
 /**
-   Cek koneksi Wi-Fi
-*/
+ * Cek koneksi Wi-Fi
+ */
 void checkWiFiConnection()
 {
   if (WiFi.status() != WL_CONNECTED)
@@ -62,9 +61,9 @@ void checkWiFiConnection()
 }
 
 /**
-   Scan RFID dan mendapatkan UID
-   @return true jika kartu baru terdeteksi, false jika tidak
-*/
+ * Scan RFID dan mendapatkan UID
+ * @return true jika kartu baru terdeteksi, false jika tidak
+ */
 bool scanRFID()
 {
   if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
@@ -88,33 +87,17 @@ bool scanRFID()
 }
 
 /**
-   Cek apakah kartu sudah terdaftar
-   @param uid UID dari kartu RFID
-   @return true jika kartu terdaftar, false jika tidak
-*/
-bool checkCardStatus(const String &uid)
-{
-  WiFiClient client;
-  HTTPClient http;
-  http.begin(client, registerUrl);
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  String postData = "uid=" + uid + "&check=true";
-  int httpCode = http.POST(postData);
-  String response = http.getString();
-  http.end();
+ * Cek apakah kartu sudah terdaftar
+ * @param uid UID dari kartu RFID
+ * @return true jika kartu terdaftar, false jika tidak
+ */
 
-  if (httpCode == HTTP_CODE_OK)
-  {
-    return response.indexOf("exists") >= 0; // Respon berisi "exists" jika terdaftar
-  }
-  return false;
-}
 
 /**
-   Input data dari keypad
-   @param prompt pesan yang ditampilkan untuk meminta input
-   @return input dari keypad
-*/
+ * Input data dari keypad
+ * @param prompt pesan yang ditampilkan untuk meminta input
+ * @return input dari keypad
+ */
 String readFromKeypad(const String &prompt)
 {
   Serial.println(prompt);
@@ -145,10 +128,10 @@ String readFromKeypad(const String &prompt)
 }
 
 /**
-   Kirim data berat dan tinggi ke server
-   @param height tinggi badan
-   @param weight berat badan
-*/
+ * Kirim data berat dan tinggi ke server
+ * @param height tinggi badan
+ * @param weight berat badan
+ */
 void sendData(const String &height, const String &weight)
 {
   WiFiClient client;
@@ -177,8 +160,8 @@ void sendData(const String &height, const String &weight)
 }
 
 /**
-   Fungsi untuk melihat data dari server
-*/
+ * Fungsi untuk melihat data dari server
+ */
 void lihatData()
 {
   if (WiFi.status() == WL_CONNECTED)
@@ -269,84 +252,67 @@ void lihatData()
   lcd.clear();
 }
 
-/**
-   Fungsi setup untuk inisialisasi
-*/
+void hapusData() {
+    if (WiFi.status() == WL_CONNECTED) {
+        WiFiClient client;
+        HTTPClient http;
 
-void hapusData()
-{
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    WiFiClient client;
-    HTTPClient http;
+        http.begin(client, "http://192.168.1.201/coba/hapus_data.php"); // URL endpoint hapus data
+        http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    http.begin(client, "http://192.168.1.201/coba/hapus.php"); // URL endpoint hapus data
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        // Kirim data UID untuk dihapus
+        String postData = "uid=" + uid;
+        int httpResponseCode = http.POST(postData);
 
-    // Kirim data UID untuk dihapus
-    String postData = "uid=" + uid;
-    int httpResponseCode = http.POST(postData);
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            Serial.println("Server Response:");
+            Serial.println(response);
 
-    if (httpResponseCode > 0)
-    {
-      String response = http.getString();
-      Serial.println("Server Response:");
-      Serial.println(response);
+            // Parsing JSON respons
+            DynamicJsonDocument doc(256);
+            DeserializationError error = deserializeJson(doc, response);
 
-      // Parsing JSON respons
-      DynamicJsonDocument doc(256);
-      DeserializationError error = deserializeJson(doc, response);
+            if (!error) {
+                bool success = doc["success"];
+                const char* message = doc["message"];
 
-      if (!error)
-      {
-        bool success = doc["success"];
-        const char *message = doc["message"];
-
-        if (success)
-        {
-          Serial.println("Data berhasil dihapus.");
-          lcd.clear();
-          lcd.print("Data Deleted");
+                if (success) {
+                    Serial.println("Data berhasil dihapus.");
+                    lcd.clear();
+                    lcd.print("Data Deleted");
+                } else {
+                    Serial.print("Gagal menghapus data: ");
+                    Serial.println(message);
+                    lcd.clear();
+                    lcd.print("Failed Delete");
+                }
+            } else {
+                Serial.println("Gagal mem-parsing JSON respons.");
+                lcd.clear();
+                lcd.print("JSON Error!");
+            }
+        } else {
+            Serial.print("Error HTTP: ");
+            Serial.println(httpResponseCode);
+            lcd.clear();
+            lcd.print("HTTP Error!");
         }
-        else
-        {
-          Serial.print("Gagal menghapus data: ");
-          Serial.println(message);
-          lcd.clear();
-          lcd.print("Failed Delete");
-        }
-      }
-      else
-      {
-        Serial.println("Gagal mem-parsing JSON respons.");
+
+        http.end();
+    } else {
+        Serial.println("WiFi tidak terhubung.");
         lcd.clear();
-        lcd.print("JSON Error!");
-      }
-    }
-    else
-    {
-      Serial.print("Error HTTP: ");
-      Serial.println(httpResponseCode);
-      lcd.clear();
-      lcd.print("HTTP Error!");
+        lcd.print("No WiFi!");
     }
 
-    http.end();
-  }
-  else
-  {
-    Serial.println("WiFi tidak terhubung.");
-    lcd.clear();
-    lcd.print("No WiFi!");
-  }
-
-  delay(2000);
-  // Add this line to return to the main loop
-  lcd.clear();
-  lcd.print("Scan next card");
-  delay(2000);
+    delay(2000);
 }
 
+
+/**
+ * Fungsi setup untuk inisialisasi
+ */
 void setup()
 {
   Serial.begin(115200);
@@ -359,12 +325,12 @@ void setup()
   checkWiFiConnection();
   Serial.println("System Ready.");
   lcd.clear();
-  lcd.print("scan kartu!");
+  lcd.print("Ready!");
 }
 
 /**
-   Fungsi loop utama
-*/
+ * Fungsi loop utama
+ */
 void loop()
 {
   checkWiFiConnection();
@@ -402,32 +368,27 @@ void loop()
         sendData(height, weight);
         break; // Keluar dari loop opsi
       }
-      else if (key == 'B')
-      {
-        lihatData();
-        Serial.println("Tekan 'D' untuk hapus data.");
-        lcd.clear();
-        lcd.print("Press D: Delete");
+      if (key == 'B') {
+    lihatData();
+    Serial.println("Tekan 'A' untuk hapus data.");
+    lcd.clear();
+    lcd.print("Press A: Delete");
 
-        while (true)
-        {
-          char deleteKey = keypad.getKey();
-          if (deleteKey == 'D')
-          {
+    while (true) {
+        char deleteKey = keypad.getKey();
+        if (deleteKey == 'A') {
             hapusData();
             break;
-          }
-          if (deleteKey == 'C')
-          {
+        }
+        if (deleteKey == 'D') {
             Serial.println("Proses batal.");
             lcd.clear();
-            lcd.print("Press C: Cancel");
+            lcd.print("Cancelled");
             delay(2000);
             break;
-          }
         }
-        break; // Add this line to exit the loop after deleting or canceling
-      }
+    }
+}
 
       else if (key == 'C')
       {
