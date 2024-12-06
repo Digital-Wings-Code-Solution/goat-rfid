@@ -25,11 +25,10 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 const byte ROWS = 4;
 const byte COLS = 4;
 char keys[ROWS][COLS] = {
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
+    {'1', '2', '3', 'A'},
+    {'4', '5', '6', 'B'},
+    {'7', '8', '9', 'C'},
+    {'*', '0', '#', 'D'}};
 byte rowPins[ROWS] = {26, 25, 33, 32};
 byte colPins[COLS] = {13, 12, 14, 27};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
@@ -274,8 +273,10 @@ void lihatData()
    Fungsi setup untuk inisialisasi
 */
 
-void hapusData() {
-  if (WiFi.status() == WL_CONNECTED) {
+void hapusData()
+{
+  if (WiFi.status() == WL_CONNECTED)
+  {
     WiFiClient client;
     HTTPClient http;
 
@@ -286,7 +287,8 @@ void hapusData() {
     String postData = "uid=" + uid;
     int httpResponseCode = http.POST(postData);
 
-    if (httpResponseCode > 0) {
+    if (httpResponseCode > 0)
+    {
       String response = http.getString();
       Serial.println("Server Response:");
       Serial.println(response);
@@ -295,26 +297,34 @@ void hapusData() {
       DynamicJsonDocument doc(256);
       DeserializationError error = deserializeJson(doc, response);
 
-      if (!error) {
+      if (!error)
+      {
         bool success = doc["success"];
-        const char* message = doc["message"];
+        const char *message = doc["message"];
 
-        if (success) {
+        if (success)
+        {
           Serial.println("Data berhasil dihapus.");
           lcd.clear();
           lcd.print("Data Deleted");
-        } else {
+        }
+        else
+        {
           Serial.print("Gagal menghapus data: ");
           Serial.println(message);
           lcd.clear();
           lcd.print("Failed Delete");
         }
-      } else {
+      }
+      else
+      {
         Serial.println("Gagal mem-parsing JSON respons.");
         lcd.clear();
         lcd.print("JSON Error!");
       }
-    } else {
+    }
+    else
+    {
       Serial.print("Error HTTP: ");
       Serial.println(httpResponseCode);
       lcd.clear();
@@ -322,12 +332,18 @@ void hapusData() {
     }
 
     http.end();
-  } else {
+  }
+  else
+  {
     Serial.println("WiFi tidak terhubung.");
     lcd.clear();
     lcd.print("No WiFi!");
   }
 
+  delay(2000);
+  // Add this line to return to the main loop
+  lcd.clear();
+  lcd.print("Scan next card");
   delay(2000);
 }
 
@@ -386,19 +402,23 @@ void loop()
         sendData(height, weight);
         break; // Keluar dari loop opsi
       }
-      else if (key == 'B') {
+      else if (key == 'B')
+      {
         lihatData();
         Serial.println("Tekan 'D' untuk hapus data.");
         lcd.clear();
         lcd.print("Press D: Delete");
 
-        while (true) {
+        while (true)
+        {
           char deleteKey = keypad.getKey();
-          if (deleteKey == 'D') {
+          if (deleteKey == 'D')
+          {
             hapusData();
             break;
           }
-          if (deleteKey == 'C') {
+          if (deleteKey == 'C')
+          {
             Serial.println("Proses batal.");
             lcd.clear();
             lcd.print("Press C: Cancel");
@@ -406,6 +426,7 @@ void loop()
             break;
           }
         }
+        break; // Add this line to exit the loop after deleting or canceling
       }
 
       else if (key == 'C')
